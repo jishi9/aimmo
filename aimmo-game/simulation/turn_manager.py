@@ -61,10 +61,12 @@ class TurnManager(object):
 
     def update_avatars(self, game_state):
         try:
-            game_data = requests.get('http://localhost:8000/players/api/games/').json()
+            game_data = requests.get('http://localhost:8080/players/api/games/').json()
         except (requests.RequestException, ValueError) as err:
             LOGGER.error("Obtaining game data failed: %s", err)
+            raise
         else:
+            print game_data
             game = game_data['main']
             for user in game['users']:
                 game_state.player_changed_code(user['id'], user['code'])

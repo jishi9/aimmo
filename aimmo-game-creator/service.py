@@ -85,7 +85,7 @@ def maintain_games(api, games):
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
-    api = HTTPClient(KubeConfig.from_service_account())
+    api = HTTPClient(KubeConfig.from_file('local.kubeconfig'))
     while True:
         games = get_games()
         maintain_games(api, games)
