@@ -132,7 +132,4 @@ function start-kubernetes() {
 
 stop-kubernetes
 
-# Stop kubernetes on script exit
-trap stop-kubernetes EXIT
-
 start-kubernetes
