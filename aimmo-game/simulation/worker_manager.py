@@ -7,6 +7,68 @@ import requests
 LOGGER = logging.getLogger(__name__)
 
 
+class Worker(object):
+    def __init__(self, game_id, player_id, code):
+        self.game_id = game_id
+        self.player_id
+        self.code = code
+        print 'Starting server for player %s in game %s' % (player_id, game_id)
+
+    def is_running(self):
+        return True
+
+    def get_url(self):
+        pass
+
+    def stop(self):
+        print 'Stopping server for player %s in game %s' % (self.player_id, self.game_id)
+
+
+class WorkerManager2(object):
+    def __init__(self, game_id):
+        self.game_id = game_id
+        self.workers = dict()
+
+
+    def create_worker(self, player_id, *args):
+        if player_id in self.workers:
+            raise ValueError('Worker already exists')
+
+        self.workers[player_id] = Worker(self.game_id, player_id, *args)
+
+
+    def create_or_update_worker(self, player_id, *args):
+        if player_id in self.workers:
+            self.remove_worker(player_id)
+
+        self.create_worker(player_id, *args)
+
+
+    def remove_worker(self, player_id):
+        if player_id not in self.workers:
+            raise ValueError('Worker does not exist')
+
+        worker = self.workers[player_id]
+        del self.workers[player_id]
+        worker.stop()
+
+    def ensure_workers(self, player_ids):
+        player_ids_to_keep = frozenset(player_ids)
+
+        workers_to_remove = self.workers.keys() - player_ids_to_keep
+        for worker in workers_to_remove:
+            self.remove_worker(worker.player_id)
+
+        workers_to_create = player_ids_to_keep - self.workers.keys()
+        for player_id in workers_to_create:
+            self.create_worker(player_id)
+
+        workers_to_restart = [ w for w in self.workers if not w.is_running() ]
+        for worker in workers_to_restart:
+            self.create_or_update_worker(worker.player_id, *worker.args)
+
+
+
 class WorkerManager(threading.Thread):
     daemon = True
 
@@ -14,7 +76,11 @@ class WorkerManager(threading.Thread):
         self.game_state = game_state
         self.users_url = users_url
         self.user_codes = {}
+        self.instance_launcher = NotImplemented
         super(WorkerManager, self).__init__()
+
+    def maintain_worker_pool(self, expected_workers):
+
 
     def run(self):
         while True:
